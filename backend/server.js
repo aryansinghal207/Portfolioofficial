@@ -37,9 +37,8 @@ app.post('/api/contact', async (req, res) => {
   }
 
   // Validate environment variables
-  if (!process.env.SMTP_HOST || !process.env.MAIL_FROM || !process.env.MAIL_APP_PASSWORD) {
-    console.error('Missing SMTP configuration:', {
-      SMTP_HOST: !!process.env.SMTP_HOST,
+  if (!process.env.MAIL_FROM || !process.env.MAIL_APP_PASSWORD) {
+    console.error('Missing email configuration:', {
       MAIL_FROM: !!process.env.MAIL_FROM,
       MAIL_APP_PASSWORD: !!process.env.MAIL_APP_PASSWORD,
     });
@@ -53,6 +52,7 @@ app.post('/api/contact', async (req, res) => {
         user: process.env.MAIL_FROM,
         pass: process.env.MAIL_APP_PASSWORD,
       },
+      timeout: 20000, // 20 second timeout
     };
 
     console.log('Creating transporter with config:', {
@@ -62,10 +62,15 @@ app.post('/api/contact', async (req, res) => {
 
     const transporter = nodemailer.createTransport(transportConfig);
 
+    // Verify connection
+    console.log('Verifying SMTP connection...');
+    await transporter.verify();
+    console.log('SMTP connection verified successfully');
+
     console.log('Attempting to send email to:', email);
 
     // Send confirmation email to the user first (primary success condition)
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: {
         name: 'Aryan Singhal',
         address: process.env.MAIL_FROM || ''
@@ -76,6 +81,7 @@ app.post('/api/contact', async (req, res) => {
     });
 
     console.log('Confirmation email sent successfully to:', email);
+    console.log('Message ID:', info.messageId);
 
     // Fire-and-forget owner notification (do not fail API if this throws)
     transporter.sendMail({
