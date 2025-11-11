@@ -48,43 +48,42 @@ app.post('/api/contact', async (req, res) => {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    console.log('Attempting to send email to:', email);
+    console.log('Sending notification to owner for contact from:', email);
 
-    // Send confirmation email to the user
-    const { data, error } = await resend.emails.send({
+    // Send notification to you (the owner) - this always works
+    const { data: ownerData, error: ownerError } = await resend.emails.send({
+      from: `Portfolio Contact <${process.env.MAIL_FROM}>`,
+      to: [process.env.MAIL_TO || 'aryansinghal207@gmail.com'],
+      subject: `New contact form submission from ${name}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+        <hr>
+        <p><small>Reply directly to ${email} to respond.</small></p>
+      `,
+    });
+
+    if (ownerError) {
+      console.error('Failed to send owner notification:', ownerError);
+      return res.status(500).json({ ok: false, error: 'Failed to send email' });
+    }
+
+    console.log('Owner notification sent successfully. ID:', ownerData.id);
+
+    // Try to send confirmation to user (optional - won't fail if their email is unverified)
+    resend.emails.send({
       from: `Aryan Singhal <${process.env.MAIL_FROM}>`,
       to: [email],
       subject: 'We received your message – Thank you',
       html: renderConfirmationTemplate({ name }),
+    }).then(({ data }) => {
+      console.log('Confirmation email sent to user. ID:', data.id);
+    }).catch((err) => {
+      console.log('Could not send confirmation to user (likely unverified email):', err.message);
     });
-
-    if (error) {
-      console.error('Resend error:', error);
-      // If email fails due to unverified domain, still save the message
-      if (error.message && error.message.includes('not verified')) {
-        console.log('Email not sent (unverified recipient), but saving contact info');
-        // Still send notification to owner
-        await resend.emails.send({
-          from: `Portfolio Contact <${process.env.MAIL_FROM}>`,
-          to: [process.env.MAIL_TO || 'aryansinghal207@gmail.com'],
-          subject: `New contact form submission from ${name}`,
-          html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong></p><p>${message.replace(/\n/g, '<br>')}</p>`,
-        });
-        return res.json({ ok: true, note: 'Message received. We will contact you soon.' });
-      }
-      return res.status(500).json({ ok: false, error: 'Failed to send email' });
-    }
-
-    console.log('Confirmation email sent successfully to:', email);
-    console.log('Message ID:', data.id);
-
-    // Fire-and-forget owner notification
-    resend.emails.send({
-      from: `Portfolio Contact <${process.env.MAIL_FROM}>`,
-      to: [process.env.MAIL_TO || process.env.MAIL_FROM],
-      subject: `New contact form submission from ${name}`,
-      html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong></p><p>${message.replace(/\n/g, '<br>')}</p>`,
-    }).catch((e) => console.error('Owner notification failed:', e));
 
     return res.json({ ok: true });
   } catch (err) {
