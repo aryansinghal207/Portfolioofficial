@@ -36,6 +36,16 @@ app.post('/api/contact', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'Missing required fields' });
   }
 
+  // Validate environment variables
+  if (!process.env.SMTP_HOST || !process.env.MAIL_FROM || !process.env.MAIL_APP_PASSWORD) {
+    console.error('Missing SMTP configuration:', {
+      SMTP_HOST: !!process.env.SMTP_HOST,
+      MAIL_FROM: !!process.env.MAIL_FROM,
+      MAIL_APP_PASSWORD: !!process.env.MAIL_APP_PASSWORD,
+    });
+    return res.status(500).json({ ok: false, error: 'Email service not configured' });
+  }
+
   try {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -50,6 +60,8 @@ app.post('/api/contact', async (req, res) => {
       socketTimeout: 10000,
     });
 
+    console.log('Attempting to send email to:', email);
+
     // Send confirmation email to the user first (primary success condition)
     await transporter.sendMail({
       from: {
@@ -61,6 +73,8 @@ app.post('/api/contact', async (req, res) => {
       html: renderConfirmationTemplate({ name }),
     });
 
+    console.log('Confirmation email sent successfully to:', email);
+
     // Fire-and-forget owner notification (do not fail API if this throws)
     transporter.sendMail({
       from: process.env.MAIL_FROM,
@@ -71,8 +85,12 @@ app.post('/api/contact', async (req, res) => {
 
     return res.json({ ok: true });
   } catch (err) {
-    console.error('Contact error', err);
-    return res.status(500).json({ ok: false, error: 'Internal Server Error' });
+    console.error('Contact error details:', {
+      message: err.message,
+      code: err.code,
+      stack: err.stack,
+    });
+    return res.status(500).json({ ok: false, error: 'Failed to send email. Please try again later.' });
   }
 });
 
