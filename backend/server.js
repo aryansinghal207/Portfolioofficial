@@ -27,13 +27,13 @@ app.use(cors({
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true });
+  res.json({ "ok": true });
 });
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body || {};
   if (!name || !email || !message) {
-    return res.status(400).json({ ok: false, error: 'Missing required fields' });
+    return res.status(400).json({ "ok": false, error: 'Missing required fields' });
   }
 
   // Validate environment variables
@@ -42,7 +42,7 @@ app.post('/api/contact', async (req, res) => {
       RESEND_API_KEY: !!process.env.RESEND_API_KEY,
       MAIL_FROM: !!process.env.MAIL_FROM,
     });
-    return res.status(500).json({ ok: false, error: 'Email service not configured' });
+    return res.status(500).json({ "ok": false, error: 'Email service not configured' });
   }
 
   try {
@@ -68,7 +68,7 @@ app.post('/api/contact', async (req, res) => {
 
     if (ownerError) {
       console.error('Failed to send owner notification:', ownerError);
-      return res.status(500).json({ ok: false, error: 'Failed to send email' });
+      return res.status(500).json({ "ok": false, error: 'Failed to send email' });
     }
 
     console.log('Owner notification sent successfully. ID:', ownerData.id);
@@ -85,13 +85,13 @@ app.post('/api/contact', async (req, res) => {
       console.log('Could not send confirmation to user (likely unverified email):', err.message);
     });
 
-    return res.json({ ok: true });
+    return res.json({ "ok": true });
   } catch (err) {
     console.error('Contact error details:', {
       message: err.message,
       stack: err.stack,
     });
-    return res.status(500).json({ ok: false, error: 'Failed to send email. Please try again later.' });
+    return res.status(500).json({ "ok": false, error: 'Failed to send email. Please try again later.' });
   }
 });
 
