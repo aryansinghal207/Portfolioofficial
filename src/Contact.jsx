@@ -30,12 +30,25 @@ const Contact = () => {
       
       clearTimeout(timeoutId);
       
-      const data = await res.json();
-      if (data.ok) {
-        setStatus({ state: "success", message: "Sent! Check your email." });
+      // Handle 204 No Content or successful responses
+      if (res.ok) {
+        setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
         e.currentTarget.reset();
-      } else {
+        return;
+      }
+      
+      // Try to parse JSON response for errors
+      try {
+        const data = await res.json();
         setStatus({ state: "error", message: data.error || "Failed to send message. Please try again." });
+      } catch {
+        // If no JSON, but got a response
+        if (res.status === 204) {
+          setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
+          e.currentTarget.reset();
+        } else {
+          setStatus({ state: "error", message: "Failed to send message. Please try again." });
+        }
       }
     } catch (err) {
       console.error('Contact form error:', err);
