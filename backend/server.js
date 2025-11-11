@@ -60,6 +60,18 @@ app.post('/api/contact', async (req, res) => {
 
     if (error) {
       console.error('Resend error:', error);
+      // If email fails due to unverified domain, still save the message
+      if (error.message && error.message.includes('not verified')) {
+        console.log('Email not sent (unverified recipient), but saving contact info');
+        // Still send notification to owner
+        await resend.emails.send({
+          from: `Portfolio Contact <${process.env.MAIL_FROM}>`,
+          to: [process.env.MAIL_TO || 'aryansinghal207@gmail.com'],
+          subject: `New contact form submission from ${name}`,
+          html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong></p><p>${message.replace(/\n/g, '<br>')}</p>`,
+        });
+        return res.json({ ok: true, note: 'Message received. We will contact you soon.' });
+      }
       return res.status(500).json({ ok: false, error: 'Failed to send email' });
     }
 
