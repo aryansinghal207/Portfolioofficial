@@ -27,10 +27,10 @@ const Contact = () => {
         setStatus({ state: "success", message: "Sent! Check your email." });
         e.currentTarget.reset();
       } else {
-        setStatus({ state: "error", message: data.error || "Could not send. Please try again later." });
+        setStatus({ state: "error", message: data.error});
       }
     } catch (err) {
-      setStatus({ state: "error", message: "Could not send. Please try again later." });
+      setStatus({ state: "error"});
     }
   }
 

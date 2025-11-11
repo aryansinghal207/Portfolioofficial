@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // CORS configuration: supports multiple origins from env (comma-separated)
-const rawOrigins = process.env.CORS_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173';
+const rawOrigins = process.env.CORS_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173,https://portfolioofficial-livid.vercel.app/';
 const allowedOrigins = rawOrigins.split(',').map(o => o.trim()).filter(Boolean);
 app.use(cors({
   origin(origin, callback) {
