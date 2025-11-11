@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { renderConfirmationTemplate } from './templates/confirmation.js';
 
 dotenv.config();
@@ -37,69 +37,47 @@ app.post('/api/contact', async (req, res) => {
   }
 
   // Validate environment variables
-  if (!process.env.MAIL_FROM || !process.env.MAIL_APP_PASSWORD) {
+  if (!process.env.RESEND_API_KEY || !process.env.MAIL_FROM) {
     console.error('Missing email configuration:', {
+      RESEND_API_KEY: !!process.env.RESEND_API_KEY,
       MAIL_FROM: !!process.env.MAIL_FROM,
-      MAIL_APP_PASSWORD: !!process.env.MAIL_APP_PASSWORD,
     });
     return res.status(500).json({ ok: false, error: 'Email service not configured' });
   }
 
   try {
-    const transportConfig = {
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.MAIL_FROM,
-        pass: process.env.MAIL_APP_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
-        ciphers: 'SSLv3'
-      },
-      connectionTimeout: 30000,
-      greetingTimeout: 30000,
-      socketTimeout: 30000,
-    };
-
-    console.log('Creating transporter with config:', {
-      host: 'smtp.gmail.com',
-      port: 587,
-      user: process.env.MAIL_FROM,
-    });
-
-    const transporter = nodemailer.createTransport(transportConfig);
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     console.log('Attempting to send email to:', email);
 
-    // Send confirmation email to the user first (primary success condition)
-    const info = await transporter.sendMail({
-      from: {
-        name: 'Aryan Singhal',
-        address: process.env.MAIL_FROM || ''
-      },
-      to: email,
+    // Send confirmation email to the user
+    const { data, error } = await resend.emails.send({
+      from: `Aryan Singhal <${process.env.MAIL_FROM}>`,
+      to: [email],
       subject: 'We received your message – Thank you',
       html: renderConfirmationTemplate({ name }),
     });
 
-    console.log('Confirmation email sent successfully to:', email);
-    console.log('Message ID:', info.messageId);
+    if (error) {
+      console.error('Resend error:', error);
+      return res.status(500).json({ ok: false, error: 'Failed to send email' });
+    }
 
-    // Fire-and-forget owner notification (do not fail API if this throws)
-    transporter.sendMail({
-      from: process.env.MAIL_FROM,
-      to: process.env.MAIL_TO || process.env.MAIL_FROM,
+    console.log('Confirmation email sent successfully to:', email);
+    console.log('Message ID:', data.id);
+
+    // Fire-and-forget owner notification
+    resend.emails.send({
+      from: `Portfolio Contact <${process.env.MAIL_FROM}>`,
+      to: [process.env.MAIL_TO || process.env.MAIL_FROM],
       subject: `New contact form submission from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+      html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong></p><p>${message.replace(/\n/g, '<br>')}</p>`,
     }).catch((e) => console.error('Owner notification failed:', e));
 
     return res.json({ ok: true });
   } catch (err) {
     console.error('Contact error details:', {
       message: err.message,
-      code: err.code,
       stack: err.stack,
     });
     return res.status(500).json({ ok: false, error: 'Failed to send email. Please try again later.' });
