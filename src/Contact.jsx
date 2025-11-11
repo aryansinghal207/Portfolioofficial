@@ -32,8 +32,20 @@ const Contact = () => {
       
       // Handle successful responses (200, 201, 204)
       if (res.ok) {
-        setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
-        e.currentTarget.reset();
+        // Try to parse JSON if available
+        try {
+          const data = await res.json();
+          if (data.ok) {
+            setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
+            e.currentTarget.reset();
+          } else {
+            setStatus({ state: "error", message: data.error || "Failed to send message. Please try again." });
+          }
+        } catch {
+          // No JSON body (204 No Content) - still success
+          setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
+          e.currentTarget.reset();
+        }
         return;
       }
       
