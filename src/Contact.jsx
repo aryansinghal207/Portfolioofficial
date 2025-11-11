@@ -6,7 +6,7 @@ import GithubIcon from "./icons/GithubIcon";
 import LinkedinIcon from "./icons/LinkedinIcon";
 import LeetcodeIcon from "./icons/LeetcodeIcon";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_BASE || "https://portfolioofficial-apgf.onrender.com";
 
 const Contact = () => {
   const [status, setStatus] = useState({ state: "idle", message: "" });
@@ -27,10 +27,11 @@ const Contact = () => {
         setStatus({ state: "success", message: "Sent! Check your email." });
         e.currentTarget.reset();
       } else {
-        setStatus({ state: "error", message: data.error});
+        setStatus({ state: "error", message: data.error || "Failed to send message. Please try again." });
       }
     } catch (err) {
-      setStatus({ state: "error"});
+      console.error('Contact form error:', err);
+      setStatus({ state: "error", message: "Network error. Please check your connection and try again." });
     }
   }
 

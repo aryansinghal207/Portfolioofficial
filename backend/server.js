@@ -10,17 +10,18 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // CORS configuration: supports multiple origins from env (comma-separated)
-const rawOrigins = process.env.CORS_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173,https://portfolioofficial-livid.vercel.app/';
+const rawOrigins = process.env.CORS_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173,https://portfolioofficial2.vercel.app,https://portfolioofficial2-3f2673lxz-aryansinghal207s-projects.vercel.app';
 const allowedOrigins = rawOrigins.split(',').map(o => o.trim()).filter(Boolean);
 app.use(cors({
   origin(origin, callback) {
     if (!origin) return callback(null, true); // SSR/tools
-    const isAllowed = allowedOrigins.some(o => origin === o);
+    const isAllowed = allowedOrigins.some(o => origin === o || origin.endsWith('.vercel.app'));
     if (isAllowed) return callback(null, true);
     return callback(new Error(`CORS: Origin ${origin} not allowed`));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json());
@@ -38,12 +39,15 @@ app.post('/api/contact', async (req, res) => {
   try {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
+      port: Number(process.env.SMTP_PORT || 465),
       secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.MAIL_FROM,
         pass: process.env.MAIL_APP_PASSWORD,
       },
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
 
     // Send confirmation email to the user first (primary success condition)
