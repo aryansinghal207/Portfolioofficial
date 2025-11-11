@@ -47,25 +47,29 @@ app.post('/api/contact', async (req, res) => {
 
   try {
     const transportConfig = {
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.MAIL_FROM,
         pass: process.env.MAIL_APP_PASSWORD,
       },
-      timeout: 20000, // 20 second timeout
+      tls: {
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
+      },
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 30000,
     };
 
     console.log('Creating transporter with config:', {
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
       user: process.env.MAIL_FROM,
     });
 
     const transporter = nodemailer.createTransport(transportConfig);
-
-    // Verify connection
-    console.log('Verifying SMTP connection...');
-    await transporter.verify();
-    console.log('SMTP connection verified successfully');
 
     console.log('Attempting to send email to:', email);
 
