@@ -47,18 +47,20 @@ app.post('/api/contact', async (req, res) => {
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 465),
-      secure: process.env.SMTP_SECURE === 'true',
+    const transportConfig = {
+      service: 'gmail',
       auth: {
         user: process.env.MAIL_FROM,
         pass: process.env.MAIL_APP_PASSWORD,
       },
-      connectionTimeout: 10000, // 10 seconds
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
+    };
+
+    console.log('Creating transporter with config:', {
+      service: 'gmail',
+      user: process.env.MAIL_FROM,
     });
+
+    const transporter = nodemailer.createTransport(transportConfig);
 
     console.log('Attempting to send email to:', email);
 
