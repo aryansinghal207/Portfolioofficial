@@ -74,6 +74,7 @@ app.post('/api/contact', async (req, res) => {
     console.log('Owner notification sent successfully. ID:', ownerData.id);
 
     // Try to send confirmation to user (optional - won't fail if their email is unverified)
+    // Fire and forget - don't wait for this
     resend.emails.send({
       from: `Aryan Singhal <${process.env.MAIL_FROM}>`,
       to: [email],
@@ -85,7 +86,8 @@ app.post('/api/contact', async (req, res) => {
       console.log('Could not send confirmation to user (likely unverified email):', err.message);
     });
 
-    return res.json({ "ok": true });
+    // Send response immediately after owner notification succeeds
+    return res.status(200).json({ ok: true, message: 'Email sent successfully' });
   } catch (err) {
     console.error('Contact error details:', {
       message: err.message,

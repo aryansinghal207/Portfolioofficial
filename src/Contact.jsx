@@ -15,11 +15,14 @@ const Contact = () => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const payload = Object.fromEntries(formData.entries());
+    
+    setStatus({ state: "loading", message: "Sending…" });
+    
     try {
-      setStatus({ state: "loading", message: "Sending…" });
-      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      console.log('Sending request to:', `${API_BASE}/api/contact`);
       
       const res = await fetch(`${API_BASE}/api/contact`, {
         method: "POST",
@@ -30,27 +33,38 @@ const Contact = () => {
       
       clearTimeout(timeoutId);
       
-      // Handle successful responses (200, 201, 204)
-      if (res.ok) {
-        // Try to parse JSON if available
+      console.log('Response status:', res.status, 'OK:', res.ok);
+      
+      // Handle error responses first
+      if (!res.ok) {
+        let errorMessage = "Failed to send message. Please try again.";
         try {
           const data = await res.json();
-          if (data.ok) {
-            setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
-            e.currentTarget.reset();
-          } else {
-            setStatus({ state: "error", message: data.error || "Failed to send message. Please try again." });
-          }
-        } catch {
-          // No JSON body (204 No Content) - still success
-          setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
-          e.currentTarget.reset();
+          errorMessage = data.error || errorMessage;
+          console.error('Error response:', data);
+        } catch (parseError) {
+          console.error('Could not parse error response:', parseError);
         }
+        setStatus({ state: "error", message: errorMessage });
         return;
       }
       
-      // Handle error responses
-      setStatus({ state: "error", message: "Failed to send message. Please try again." });
+      // Handle successful responses (200, 201, 204)
+      try {
+        const data = await res.json();
+        console.log('Success response:', data);
+        if (data.ok) {
+          setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
+          e.currentTarget.reset();
+        } else {
+          setStatus({ state: "error", message: data.error || "Failed to send message. Please try again." });
+        }
+      } catch (parseError) {
+        console.error('Could not parse success response:', parseError);
+        // If we can't parse JSON but status was ok, treat as success
+        setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
+        e.currentTarget.reset();
+      }
     } catch (err) {
       console.error('Contact form error:', err);
       if (err.name === 'AbortError') {
