@@ -17,11 +17,19 @@ const Contact = () => {
     const payload = Object.fromEntries(formData.entries());
     try {
       setStatus({ state: "loading", message: "Sending…" });
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
       const res = await fetch(`${API_BASE}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       const data = await res.json();
       if (data.ok) {
         setStatus({ state: "success", message: "Sent! Check your email." });
@@ -31,7 +39,11 @@ const Contact = () => {
       }
     } catch (err) {
       console.error('Contact form error:', err);
-      setStatus({ state: "error", message: "Network error. Please check your connection and try again." });
+      if (err.name === 'AbortError') {
+        setStatus({ state: "error", message: "Request timeout. The server is taking too long to respond. Please try again." });
+      } else {
+        setStatus({ state: "error", message: "Network error. Please check your connection and try again." });
+      }
     }
   }
 
