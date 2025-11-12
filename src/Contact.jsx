@@ -13,7 +13,8 @@ const Contact = () => {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget; // Store form reference before async operations
+    const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
     
     setStatus({ state: "loading", message: "Sending…" });
@@ -54,8 +55,10 @@ const Contact = () => {
         const data = await res.json();
         console.log('Success response:', data);
         if (data.ok) {
+          console.log('Message sent successfully.');
           setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
-          e.currentTarget.reset();
+          alert("Message sent successfully! We'll get back to you soon.");
+          form.reset();
         } else {
           setStatus({ state: "error", message: data.error || "Failed to send message. Please try again." });
         }
@@ -63,7 +66,7 @@ const Contact = () => {
         console.error('Could not parse success response:', parseError);
         // If we can't parse JSON but status was ok, treat as success
         setStatus({ state: "success", message: "Message sent successfully! We'll get back to you soon." });
-        e.currentTarget.reset();
+        form.reset();
       }
     } catch (err) {
       console.error('Contact form error:', err);
