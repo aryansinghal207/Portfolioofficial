@@ -8,7 +8,7 @@ const Home = () => (
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-2">Hi, I'm Aryan Singhal</h1>
           <h2 className="text-lg md:text-xl mb-4">Software Developer</h2>
           <p className="mb-4 max-w-3xl">
-            Motivated and detail-oriented Computer Science graduate with a strong foundation in core programming languages including Java, C++, C, and Python. Proficient in front-end development, operating systems, and database management systems (DBMS). Adept at problem-solving, debugging, and writing clean, efficient code. Strong understanding of software development life cycle (SDLC) and object-oriented programming (OOP) principles. Eager to contribute to innovative projects, collaborate with cross-functional teams, and grow under the mentorship of experienced professionals in a fast-paced, dynamic environment.
+            Motivated and detail-oriented Computer Science student with a strong foundation in core programming languages including Java, C++, SQL, and JavaScript. Proficient in web development with React.js, Node.js, and Tailwind CSS. Strong understanding of data structures, algorithms, operating systems, and database management systems. Experienced in building full-stack applications and solving complex problems. Eager to contribute to innovative projects, collaborate with cross-functional teams, and grow under the mentorship of experienced professionals in a fast-paced, dynamic environment.
           </p>
           <div className="mb-6">G-213, Patel Nagar 3, Ghaziabad</div>
           <div className="mt-auto flex gap-3">

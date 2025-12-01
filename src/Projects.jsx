@@ -24,7 +24,7 @@ const Projects = () => (
       <h2 className="text-2xl font-bold mb-4">Projects</h2>
       <div className="grid grid-cols-1 gap-4">
         <ProjectCard
-          title="E-Commerce Web Application using React.js"
+          title="E-Shop - ReactJS E-commerce Frontend Application | GITHUB | WEBSITE"
           period="Sep 2024 – Oct 2024"
           url="https://e-commerce-react-b824jvn0d-aryansinghal207s-projects.vercel.app/"
           bullets={[
@@ -35,7 +35,7 @@ const Projects = () => (
           ]}
         />
         <ProjectCard
-          title="Automobile Workshop Website"
+          title="AutoFix - Automobile Workshop Website | HTML, CSS, JavaScript | GITHUB | WEBSITE"
           period="April 2024 – May 2024"
           url="https://frontend-website-one.vercel.app/"
           bullets={[

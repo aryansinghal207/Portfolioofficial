@@ -7,6 +7,7 @@ import Education from "./Education";
 import Projects from "./Projects";
 import Certificates from "./Certificates";
 import Achievements from "./Achievements";
+import Extracurricular from "./Extracurricular";
 import Contact from "./Contact";
 import Footer from "./Footer";
 
@@ -22,6 +23,7 @@ function App() {
         <div className="scroll-mt-24" id="projects-section"><Projects /></div>
         <div className="scroll-mt-24" id="certificates-section"><Certificates /></div>
         <div className="scroll-mt-24" id="achievements-section"><Achievements /></div>
+        <div className="scroll-mt-24" id="extracurricular-section"><Extracurricular /></div>
         <div className="scroll-mt-24" id="contact-section"><Contact /></div>
       </main>
       <Footer />
